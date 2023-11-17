@@ -1,4 +1,4 @@
-import gulp from "gulp";
+import gulp from 'gulp';
 import '../gulpfile.js';
 function build() {
   const taskInstance = gulp.task('build');
@@ -8,4 +8,4 @@ function build() {
   }
   taskInstance.apply(gulp);
 }
-build()
+build();

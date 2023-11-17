@@ -1,11 +1,9 @@
 import {join} from 'node:path';
-import {node} from '../../.electron-vendors.cache.json';
+import {chrome} from '../../.electron-vendors.cache.json';
 import {injectAppVersion} from '../../version/inject-app-version-plugin.mjs';
-
 const PACKAGE_ROOT = __dirname;
 const PROJECT_ROOT = join(PACKAGE_ROOT, '../..');
 const isProd = process.env.MODE === 'production';
-
 /**
  * @type {import('vite').UserConfig}
  * @see https://vitejs.dev/config/
@@ -17,7 +15,7 @@ const config = {
   build: {
     ssr: true,
     sourcemap: isProd,
-    target: `node${node}`,
+    target: `chrome${chrome}`,
     outDir: 'dist',
     assetsDir: '.',
     minify: isProd,
@@ -35,4 +33,5 @@ const config = {
   },
   plugins: [injectAppVersion()],
 };
+
 export default config;

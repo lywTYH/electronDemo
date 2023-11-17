@@ -1,7 +1,7 @@
 import {app} from 'electron';
 import {platform} from 'node:process';
-import './security-restrictions';
 import {restoreOrCreateWindow} from './mainWindow';
+import './security-restrictions';
 
 /**
  * Prevent electron from running multiple instances.
@@ -28,7 +28,6 @@ app.on('window-all-closed', () => {
   }
 });
 
-
 app.on('activate', restoreOrCreateWindow);
 
 /**
@@ -51,7 +50,6 @@ if (import.meta.env.DEV) {
   //     const {default: installExtension, VUEJS3_DEVTOOLS} =
   //       // @ts-expect-error Hotfix for https://github.com/cawa-93/vite-electron-builder/issues/915
   //       typeof module.default === 'function' ? module : (module.default as typeof module);
-
   //     return installExtension(VUEJS3_DEVTOOLS, {
   //       loadExtensionOptions: {
   //         allowFileAccess: true,
@@ -72,8 +70,6 @@ if (import.meta.env.DEV) {
 if (import.meta.env.PROD) {
   app
     .whenReady()
-    .then(() =>
-      require('electron-updater').autoUpdater.checkForUpdatesAndNotify(),
-    )
+    .then(() => require('electron-updater').autoUpdater.checkForUpdatesAndNotify())
     .catch(e => console.error('Failed check and install updates:', e));
 }
