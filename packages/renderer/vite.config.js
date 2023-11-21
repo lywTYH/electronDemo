@@ -1,3 +1,4 @@
+/* global __dirname process */
 import {join} from 'node:path';
 // import vue from '@vitejs/plugin-vue';
 // import {renderer} from 'unplugin-auto-expose';

@@ -17,6 +17,5 @@
   "htmlWhitespaceSensitivity": "strict",
   "endOfLine": "lf",
   "singleAttributePerLine": true,
-  "importOrder": ["^([a-z]|@[a-z])", "", ".*"],
   "plugins": ["prettier-plugin-organize-imports", "prettier-plugin-packagejson"]
 }

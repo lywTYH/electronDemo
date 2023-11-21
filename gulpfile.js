@@ -28,21 +28,47 @@ gulp.task('build:renderer', () => viteBuild('renderer'));
 gulp.task('electron:build', () => {
   return electronBuild({
     config: {
-      appId: 'appid',
+      productName: 'pName',
+      appId: 'com.leon.xxxxx',
+      // copyright
       asar: false,
       directories: {
         output: buildPath,
-        buildResources: 'buildResources',
       },
+      nsis: {
+        oneClick: false, // 是否一键安装
+        allowElevation: true, // 允许请求提升。 如果为false，则用户必须使用提升的权限重新启动安装程序。
+        allowToChangeInstallationDirectory: true, // 允许修改安装目录
+        installerIcon: './build/icons/aaa.ico', // 安装图标
+        uninstallerIcon: './build/icons/bbb.ico', //卸载图标
+        installerHeaderIcon: './build/icons/aaa.ico', // 安装时头部图标
+        createDesktopShortcut: true, // 创建桌面图标
+        createStartMenuShortcut: true, // 创建开始菜单图标
+        shortcutName: 'xxxx', // 图标名称
+        include: 'build/script/installer.nsh', // 包含的自定义nsis脚本
+      },
+      publish: [
+        {
+          provider: 'generic', // 服务器提供商 也可以是GitHub等等
+          url: 'http://xxxxx/', // 服务器地址
+        },
+      ],
       files: ['packages/**/dist/**'],
       extraMetadata: {
         version: getVersion(),
       },
       linux: {
         target: 'deb',
+        icon: 'build/icons',
       },
       win: {
-        target: ['nsis'],
+        icon: 'build/icons/aims.ico',
+        target: [
+          {
+            target: 'nsis',
+            arch: ['ia32'],
+          },
+        ],
       },
     },
     dir: true,
@@ -51,7 +77,9 @@ gulp.task('electron:build', () => {
 
 /** @param {'main'|'preload'|'renderer'} type */
 function typeCheck(type, cb) {
-  const cmd = spawn('tsc', ['--noEmit', '-p', 'packages/main/tsconfig.json'], {stdio: 'inherit'});
+  const cmd = spawn('tsc', ['--noEmit', '-p', `packages/${type}/tsconfig.json`], {
+    stdio: 'inherit',
+  });
   cmd.on('close', function (code) {
     cb(code);
   });
@@ -73,8 +101,8 @@ gulp.task(
   ]),
 );
 
-// "test": "npm run test:main && npm run test:preload && npm run test:renderer && npm run test:e2e",
-// "test:e2e": "npm run build && vitest run",
-// "test:main": "vitest run -r packages/main --passWithNoTests",
-// "test:preload": "vitest run -r packages/preload --passWithNoTests",
-// "test:renderer": "vitest run -r packages/renderer --passWithNoTests",
+gulp.task('test:main');
+gulp.task('test:preload');
+gulp.task('test:renderer');
+gulp.task('test:e2e');
+gulp.task('test');
