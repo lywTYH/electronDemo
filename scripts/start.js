@@ -24,7 +24,9 @@ function setupMainPackageWatcher({resolvedUrls}) {
     logLevel,
     configFile: 'packages/main/vite.config.js',
     build: {
-      watch: {},
+      watch: {
+        clearScreen: true,
+      },
     },
     plugins: [
       {
@@ -62,7 +64,9 @@ function setupPreloadPackageWatcher({ws}) {
     logLevel,
     configFile: 'packages/preload/vite.config.js',
     build: {
-      watch: {},
+      watch: {
+        clearScreen: true,
+      },
     },
     plugins: [
       {
