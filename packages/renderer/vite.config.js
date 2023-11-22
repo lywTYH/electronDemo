@@ -32,6 +32,9 @@ const config = {
     },
     emptyOutDir: true,
     reportCompressedSize: false,
+    watch: {
+      clearScreen: true,
+    },
   },
   test: {
     environment: 'happy-dom',

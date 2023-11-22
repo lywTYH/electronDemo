@@ -1,8 +1,7 @@
-import {app} from 'electron';
+import {app, ipcMain, nativeTheme} from 'electron';
 import {platform} from 'node:process';
 import {restoreOrCreateWindow} from './mainWindow';
 import './security-restrictions';
-
 /**
  * Prevent electron from running multiple instances.
  */
@@ -11,14 +10,11 @@ if (!isSingleInstance) {
   app.quit();
   process.exit(0);
 }
-
 app.on('second-instance', restoreOrCreateWindow);
-
 /**
  * Disable Hardware Acceleration to save more system resources.
  */
 app.disableHardwareAcceleration();
-
 /**
  * Shout down background process if all windows was closed
  */
@@ -29,6 +25,19 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', restoreOrCreateWindow);
+
+ipcMain.handle('dark-mode:toggle', () => {
+  if (nativeTheme.shouldUseDarkColors) {
+    nativeTheme.themeSource = 'light';
+  } else {
+    nativeTheme.themeSource = 'dark';
+  }
+  return nativeTheme.shouldUseDarkColors;
+});
+
+ipcMain.handle('dark-mode:system', () => {
+  nativeTheme.themeSource = 'system';
+});
 
 /**
  * Create the application window when the background process is ready.
