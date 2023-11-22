@@ -1,4 +1,4 @@
-import {spawn} from 'child_process';
+import {exec} from 'child_process';
 import {deleteAsync} from 'del';
 import {build as electronBuild} from 'electron-builder';
 import gulp from 'gulp';
@@ -77,7 +77,7 @@ gulp.task('electron:build', () => {
 
 /** @param {'main'|'preload'|'renderer'} type */
 function typeCheck(type, cb) {
-  const cmd = spawn('tsc', ['--noEmit', '-p', `packages/${type}/tsconfig.json`], {
+  const cmd = exec(`npx tsc --noEmit -p packages/${type}/tsconfig.json`, {
     stdio: 'inherit',
   });
   cmd.on('close', function (code) {
@@ -97,7 +97,7 @@ gulp.task(
   gulp.series([
     gulp.parallel(['clean', 'typecheck']),
     gulp.parallel(['build:main', 'build:preload', 'build:renderer']),
-    'electron:build',
+    // 'electron:build',
   ]),
 );
 

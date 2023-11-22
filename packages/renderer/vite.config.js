@@ -1,7 +1,7 @@
 /* global __dirname process */
 import {join} from 'node:path';
 // import vue from '@vitejs/plugin-vue';
-// import {renderer} from 'unplugin-auto-expose';
+import {renderer} from 'unplugin-auto-expose';
 import {chrome} from '../../.electron-vendors.cache.json';
 import {injectAppVersion} from '../../version/inject-app-version-plugin.mjs';
 
@@ -41,9 +41,9 @@ const config = {
   },
   plugins: [
     // vue(),
-    // renderer.vite({
-    //   preloadEntry: join(PACKAGE_ROOT, '../preload/src/index.ts'),
-    // }),
+    renderer.vite({
+      preloadEntry: join(PACKAGE_ROOT, '../preload/src/index.ts'),
+    }),
     injectAppVersion(),
   ],
 };
