@@ -1,6 +1,7 @@
-import {app, ipcMain, nativeTheme} from 'electron';
+import {Menu, app} from 'electron';
 import {platform} from 'node:process';
 import {restoreOrCreateWindow} from './mainWindow';
+import menu from './menu';
 import './security-restrictions';
 /**
  * Prevent electron from running multiple instances.
@@ -26,19 +27,7 @@ app.on('window-all-closed', () => {
 
 app.on('activate', restoreOrCreateWindow);
 
-ipcMain.handle('dark-mode:toggle', () => {
-  if (nativeTheme.shouldUseDarkColors) {
-    nativeTheme.themeSource = 'light';
-  } else {
-    nativeTheme.themeSource = 'dark';
-  }
-  return nativeTheme.shouldUseDarkColors;
-});
-
-ipcMain.handle('dark-mode:system', () => {
-  nativeTheme.themeSource = 'system';
-});
-
+Menu.setApplicationMenu(menu);
 /**
  * Create the application window when the background process is ready.
  */
