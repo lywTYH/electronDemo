@@ -1,12 +1,12 @@
+import {system, toggle} from '#preload';
 import './styles/index.css';
 
-document.getElementById('app')!.innerText = 'hello nihao  nihao shijie';
 document.getElementById('toggle-dark-mode')!.addEventListener('click', async () => {
-  const isDarkMode = await window.darkMode.toggle();
+  const isDarkMode = await toggle();
   document.getElementById('theme-source')!.innerHTML = isDarkMode ? 'Dark' : 'Light';
 });
 
 document.getElementById('reset-to-system')!.addEventListener('click', async () => {
-  await window.darkMode.system();
+  await system();
   document.getElementById('theme-source')!.innerHTML = 'System';
 });
