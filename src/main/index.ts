@@ -1,8 +1,8 @@
 import {Menu, app} from 'electron';
 import {platform} from 'node:process';
-import {restoreOrCreateWindow} from './mainWindow';
-import menu from './menu';
-import './security-restrictions';
+import {restoreOrCreateWindow} from './src/mainWindow';
+import menu from './src/menu';
+import './src/security-restrictions';
 /**
  * Prevent electron from running multiple instances.
  */
