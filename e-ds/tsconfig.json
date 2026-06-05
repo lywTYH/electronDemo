@@ -10,10 +10,11 @@
     "baseUrl": ".",
     "ignoreDeprecations": "6.0",
     "outDir": "dist",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "strict": true,
     "strictNullChecks": true,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "jsx": "react-jsx"
   }
 }
