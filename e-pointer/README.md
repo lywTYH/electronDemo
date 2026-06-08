@@ -1,30 +1,73 @@
-# React + TypeScript + Vite
+# e-pointer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A lightweight Electron screen pointer and annotation tool. Draw directly on top of any application window — perfect for presentations, screen recordings, pair programming, and design reviews.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Screen overlay** — Transparent, always-on-top window that covers the entire screen
+- **Freehand drawing** — Draw anywhere on screen with your mouse or trackpad
+- **Click-through** — When not drawing, mouse events pass through to applications beneath
+- **Color picker** — 8 preset colors plus a custom color picker
+- **Adjustable line width** — 2px to 12px stroke sizes
+- **Keyboard shortcuts** — Quick toggle without touching the toolbar
 
-## Expanding the ESLint configuration
+## Shortcuts
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+| Key | Action |
+|-----|--------|
+| `Ctrl+Shift+P` | Toggle pointer/drawing mode |
+| `Esc` | Deactivate pointer mode |
 
-- Configure the top-level `parserOptions` property like this:
+## Tech Stack
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+- **Electron** — Desktop shell with transparent overlay window
+- **React 18** — UI components and state management
+- **TypeScript** — Type-safe development
+- **Vite** — Fast build tooling with HMR
+- **electron-builder** — Cross-platform packaging
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start in development mode
+npm run dev
+
+# Build for production
+npm run build
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+## How It Works
+
+1. The main process creates a transparent, frameless, fullscreen window that's always on top
+2. By default, the window is click-through (`setIgnoreMouseEvents(true, { forward: true })`)
+3. When pointer mode is activated (via shortcut or toolbar), mouse events are captured for drawing on the HTML5 canvas
+4. The preload script exposes a scoped API via `contextBridge` for secure IPC communication
+5. Deactivating pointer mode restores click-through behavior
+
+## Project Structure
+
+```
+e-pointer/
+├── electron/
+│   ├── main.ts        # Main process: window, IPC handlers, shortcuts
+│   └── preload.ts     # Preload script: contextBridge API
+├── src/
+│   ├── App.tsx        # Pointer overlay UI with canvas drawing
+│   ├── App.css        # Overlay and toolbar styles
+│   ├── index.css      # Base reset styles
+│   ├── main.tsx       # React entry point
+│   └── types/
+│       └── electron.d.ts  # TypeScript declarations
+├── public/            # Static assets
+├── index.html         # HTML shell
+├── vite.config.ts     # Vite + Electron plugin config
+├── electron-builder.json5  # Build/packaging config
+└── package.json
+```
+
+## License
+
+MIT

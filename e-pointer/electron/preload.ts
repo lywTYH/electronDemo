@@ -1,6 +1,22 @@
 import { ipcRenderer, contextBridge } from 'electron'
+import type { ElectronAPI } from '../src/types/electron'
 
-// --------- Expose some API to the Renderer process ---------
+// --------- Expose a scoped API to the Renderer process ---------
+const electronAPI: ElectronAPI = {
+  setIgnoreMouseEvents: (ignore: boolean) => {
+    ipcRenderer.send('set-ignore-mouse-events', ignore)
+  },
+
+  onTogglePointer: (callback: (active: boolean) => void) => {
+    ipcRenderer.on('toggle-pointer', (_event, active: boolean) => callback(active))
+  },
+
+  sendDrawingData: (data: string) => {
+    ipcRenderer.send('drawing-data', data)
+  },
+}
+
+// Also keep the legacy ipcRenderer bridge for backward compatibility
 contextBridge.exposeInMainWorld('ipcRenderer', {
   on(...args: Parameters<typeof ipcRenderer.on>) {
     const [channel, listener] = args
@@ -18,7 +34,6 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     const [channel, ...omit] = args
     return ipcRenderer.invoke(channel, ...omit)
   },
-
-  // You can expose other APTs you need here.
-  // ...
 })
+
+contextBridge.exposeInMainWorld('electronAPI', electronAPI)
