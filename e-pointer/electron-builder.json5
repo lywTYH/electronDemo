@@ -4,6 +4,8 @@
   "appId": "com.epointer.app",
   "asar": true,
   "productName": "e-pointer",
+  "compression": "maximum",
+
   "directories": {
     "output": "release/${version}"
   },
@@ -11,12 +13,43 @@
     "dist",
     "dist-electron"
   ],
+
+  // ---- Publish / Auto-Update ----
+  // electron-updater reads this config to know where to check for updates.
+  // Supported providers: github, generic, s3, spaces, snapStore, etc.
+  // See: https://www.electron.build/configuration/publish
+  "publish": {
+    "provider": "github",
+    // Replace with your GitHub username/organization
+    "owner": "your-github-username",
+    "repo": "e-pointer"
+  },
+
+  // Alternative publish providers:
+  //
+  // "publish": {
+  //   "provider": "generic",
+  //   "url": "https://your-update-server.com/releases",
+  //   "channel": "latest"
+  // },
+  //
+  // "publish": {
+  //   "provider": "s3",
+  //   "bucket": "your-bucket-name",
+  //   "region": "us-east-1"
+  // },
+
+  // ---- macOS ----
   "mac": {
     "target": [
-      "dmg"
+      "dmg",
+      "zip"   // zip is required for macOS auto-update (delta updates)
     ],
-    "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
+    "artifactName": "${productName}-Mac-${version}-Installer.${ext}",
+    "category": "public.app-category.utilities"
   },
+
+  // ---- Windows ----
   "win": {
     "target": [
       {
@@ -34,10 +67,13 @@
     "allowToChangeInstallationDirectory": true,
     "deleteAppDataOnUninstall": false
   },
+
+  // ---- Linux ----
   "linux": {
     "target": [
       "AppImage"
     ],
-    "artifactName": "${productName}-Linux-${version}.${ext}"
+    "artifactName": "${productName}-Linux-${version}.${ext}",
+    "category": "Utility"
   }
 }

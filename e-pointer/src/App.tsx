@@ -1,10 +1,21 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
+import type { UpdateInfo } from './types/electron'
 import './App.css'
 
 interface Point {
   x: number
   y: number
 }
+
+// Update status states
+type UpdateStatus =
+  | 'idle'
+  | 'checking'
+  | 'available'
+  | 'not-available'
+  | 'downloading'
+  | 'downloaded'
+  | 'error'
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -14,6 +25,12 @@ function App() {
   const [lineWidth, setLineWidth] = useState(4)
   const [showControls, setShowControls] = useState(false)
   const lastPoint = useRef<Point | null>(null)
+
+  // Update state
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('idle')
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
+  const [downloadProgress, setDownloadProgress] = useState(0)
+  const [updateError, setUpdateError] = useState<string | null>(null)
 
   // Listen for toggle-pointer from main process
   useEffect(() => {
@@ -30,6 +47,49 @@ function App() {
           setIsDrawing(false)
         }
       })
+    }
+  }, [])
+
+  // Listen for auto-update events from main process
+  useEffect(() => {
+    const api = window.electronAPI
+    if (!api) return
+
+    api.onUpdateChecking(() => {
+      setUpdateStatus('checking')
+      setUpdateError(null)
+    })
+
+    api.onUpdateAvailable((info: UpdateInfo) => {
+      setUpdateStatus('available')
+      setUpdateInfo(info)
+    })
+
+    api.onUpdateNotAvailable(() => {
+      // Keep quiet — no update is the expected normal state
+      setUpdateStatus('not-available')
+      // Reset to idle after a short delay
+      setTimeout(() => setUpdateStatus('idle'), 2000)
+    })
+
+    api.onUpdateProgress((progress) => {
+      setUpdateStatus('downloading')
+      setDownloadProgress(progress.percent)
+    })
+
+    api.onUpdateDownloaded((info) => {
+      setUpdateStatus('downloaded')
+      setUpdateInfo(info)
+      setDownloadProgress(100)
+    })
+
+    api.onUpdateError((error) => {
+      setUpdateStatus('error')
+      setUpdateError(error.message)
+    })
+
+    return () => {
+      api.removeUpdateListeners()
     }
   }, [])
 
@@ -121,6 +181,29 @@ function App() {
     setShowControls(prev => !prev)
   }, [])
 
+  // Update actions
+  const handleDownloadUpdate = useCallback(() => {
+    window.electronAPI?.downloadUpdate()
+  }, [])
+
+  const handleInstallUpdate = useCallback(() => {
+    window.electronAPI?.quitAndInstall()
+  }, [])
+
+  const handleDismissUpdate = useCallback(() => {
+    setUpdateStatus('idle')
+    setUpdateInfo(null)
+    setUpdateError(null)
+  }, [])
+
+  const handleCheckUpdates = useCallback(() => {
+    setUpdateError(null)
+    window.electronAPI?.checkForUpdates().catch((err: Error) => {
+      setUpdateStatus('error')
+      setUpdateError(err.message)
+    })
+  }, [])
+
   const colors = ['#ff3333', '#33ff33', '#3355ff', '#ffff33', '#ff33ff', '#33ffff', '#ffffff', '#ff8800']
 
   return (
@@ -208,6 +291,86 @@ function App() {
         <button className="mini-toggle" onClick={toggleControls} title="Show toolbar">
           🎨
         </button>
+      )}
+
+      {/* Update Notification */}
+      {updateStatus !== 'idle' && (
+        <div className={`update-notification update-${updateStatus}`}>
+          {updateStatus === 'checking' && (
+            <span>🔍 Checking for updates…</span>
+          )}
+
+          {updateStatus === 'available' && updateInfo && (
+            <div className="update-available-content">
+              <span className="update-icon">📦</span>
+              <div className="update-details">
+                <span className="update-title">
+                  Version {updateInfo.version} is available
+                </span>
+                {updateInfo.releaseNotes && (
+                  <span className="update-notes">
+                    {typeof updateInfo.releaseNotes === 'string'
+                      ? updateInfo.releaseNotes.slice(0, 120)
+                      : ''}
+                  </span>
+                )}
+              </div>
+              <div className="update-actions">
+                <button className="update-btn update-download-btn" onClick={handleDownloadUpdate}>
+                  ⬇ Download
+                </button>
+                <button className="update-btn update-dismiss-btn" onClick={handleDismissUpdate}>
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
+          {updateStatus === 'downloading' && (
+            <div className="update-downloading-content">
+              <span>⬇ Downloading update…</span>
+              <div className="update-progress-bar">
+                <div
+                  className="update-progress-fill"
+                  style={{ width: `${Math.round(downloadProgress)}%` }}
+                />
+              </div>
+              <span className="update-progress-text">{Math.round(downloadProgress)}%</span>
+            </div>
+          )}
+
+          {updateStatus === 'downloaded' && updateInfo && (
+            <div className="update-downloaded-content">
+              <span className="update-icon">✅</span>
+              <div className="update-details">
+                <span className="update-title">Version {updateInfo.version} ready to install</span>
+                <span className="update-subtitle">Restart the app to apply the update</span>
+              </div>
+              <div className="update-actions">
+                <button className="update-btn update-install-btn" onClick={handleInstallUpdate}>
+                  🔄 Restart Now
+                </button>
+                <button className="update-btn update-dismiss-btn" onClick={handleDismissUpdate}>
+                  Later
+                </button>
+              </div>
+            </div>
+          )}
+
+          {updateStatus === 'error' && (
+            <div className="update-error-content">
+              <span>⚠️ Update error: {updateError || 'Unknown error'}</span>
+              <div className="update-actions">
+                <button className="update-btn update-retry-btn" onClick={handleCheckUpdates}>
+                  🔄 Retry
+                </button>
+                <button className="update-btn update-dismiss-btn" onClick={handleDismissUpdate}>
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   )
