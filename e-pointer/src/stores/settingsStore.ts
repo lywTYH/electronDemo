@@ -2,9 +2,9 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
-import { createPersistConfig } from './persistence/storeConfig';
 import { Settings } from '../types/types';
 import { INITIAL_SETTINGS } from './helpers/constants';
+import { createPersistConfig } from './persistence/storeConfig';
 
 export interface SettingsState {
   settings: Settings;

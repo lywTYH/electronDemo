@@ -1,5 +1,6 @@
 import { is } from '@electron-toolkit/utils';
 import { ipcMain } from 'electron';
+
 import { autoUpdater } from './autoUpdater';
 
 async function checkForUpdates() {

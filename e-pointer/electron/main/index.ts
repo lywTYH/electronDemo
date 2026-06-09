@@ -1,6 +1,7 @@
-import { app, BrowserWindow, globalShortcut } from 'electron';
-import { electronApp, optimizer } from '@electron-toolkit/utils';
 import path from 'node:path';
+
+import { electronApp, optimizer } from '@electron-toolkit/utils';
+import { app, BrowserWindow, globalShortcut } from 'electron';
 
 import { setupAutoUpdater } from './autoUpdater';
 import { registerIpcHandlers } from './ipcHandlers';

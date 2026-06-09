@@ -1,11 +1,14 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import type { UpdateInfo } from './types/electron';
-import './App.css';
+import { useMemo } from 'react';
+
+import { App as AntdApp, ConfigProvider, theme } from 'antd';
+import zhCN from 'antd/locale/zh_CN';
+
+import { useSettingsStore } from './stores';
 
 function AppContent(): React.JSX.Element {
   const { settings } = useSettingsStore();
   // 根据字体大小设置获取基础字号
-  const fontSize =useMemo(() => {
+  const fontSize = useMemo(() => {
     switch (settings.fontSize) {
       case 'small':
         return 12;
@@ -15,7 +18,8 @@ function AppContent(): React.JSX.Element {
       default:
         return 14;
     }
-  }
+  }, [settings.fontSize]);
+
   return (
     <ConfigProvider
       locale={zhCN}
@@ -23,15 +27,16 @@ function AppContent(): React.JSX.Element {
         algorithm: theme.defaultAlgorithm,
         token: {
           colorPrimary: '#1890ff',
-          fontSize: getFontSize()
+          fontSize: fontSize
         }
       }}
     >
-      <AntdApp>
-        <UpdateNotification />
+      <AntdApp >
+        <div>asdf</div>
+        {/* <UpdateNotification />
         <ZustandAppProvider>
           <Layout />
-        </ZustandAppProvider>
+        </ZustandAppProvider> */}
       </AntdApp>
     </ConfigProvider>
   );

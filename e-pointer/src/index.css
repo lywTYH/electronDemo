@@ -6,3 +6,7 @@ html, body, #root {
   overflow: hidden;
   background: transparent;
 }
+
+@theme {
+  --color-primary: #1890ff;
+}
