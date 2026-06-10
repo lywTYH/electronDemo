@@ -1,7 +1,9 @@
-import electron from 'electron';
 import fs from 'fs';
-import { mkdirp } from 'mkdirp';
 import path from 'path';
+
+import electron from 'electron';
+import { mkdirp } from 'mkdirp';
+
 
 function stripBom(content: string | Buffer) {
   // we do this because JSON.parse would convert it to a utf8 string if encoding wasn't specified

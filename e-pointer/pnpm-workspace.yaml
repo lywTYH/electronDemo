@@ -1,0 +1,5 @@
+allowBuilds:
+  electron-winstaller: false
+  unrs-resolver: false
+minimumReleaseAgeExclude:
+  - prettier@3.8.4

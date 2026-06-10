@@ -1,9 +1,10 @@
-import { is, platform } from '@electron-toolkit/utils';
-import { BrowserWindow, shell } from 'electron';
 import { join } from 'path';
 
-import icon from '../../resources/icon.png';
+import { is, platform } from '@electron-toolkit/utils';
+import { BrowserWindow, shell } from 'electron';
+
 import { windowStateKeeper } from './windowState';
+import icon from '../../resources/icon.png';
 
 export function createWindow(): void {
   const mainWindowState = windowStateKeeper({

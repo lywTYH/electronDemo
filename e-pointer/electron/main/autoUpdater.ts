@@ -1,7 +1,8 @@
+import { join } from 'path'
+
 import { is } from '@electron-toolkit/utils'
 import { BrowserWindow } from 'electron'
 import { autoUpdater } from 'electron-updater'
-import { join } from 'path'
 
 export function setupAutoUpdater(): void {
   // 设置自动下载为false，手动控制下载过程
