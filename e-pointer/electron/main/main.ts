@@ -1,48 +1,10 @@
-import path from 'node:path';
-
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 import { app, BrowserWindow, globalShortcut } from 'electron';
 
 import { setupAutoUpdater } from './autoUpdater';
 import { registerIpcHandlers } from './ipcHandlers';
+import { createWindow } from './window';
 
-function createWindow() {
-  win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
-    // Pointer overlay settings
-    transparent: true,
-    alwaysOnTop: true,
-    frame: false,
-    fullscreen: true,
-    resizable: false,
-    skipTaskbar: true,
-    hasShadow: false,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
-      nodeIntegration: false,
-      contextIsolation: true
-    }
-  });
-
-  // Make the window click-through by default (pointer mode inactive)
-  win.setIgnoreMouseEvents(true, { forward: true });
-
-  // Always on top (macOS specific)
-  win.setAlwaysOnTop(true, 'screen-saver');
-
-  // Hide from taskbar
-  win.setSkipTaskbar(true);
-
-  win.webContents.on('did-finish-load', () => {
-    win?.webContents.send('main-process-message', new Date().toLocaleString());
-  });
-
-  if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL);
-  } else {
-    win.loadFile(path.join(RENDERER_DIST, 'index.html'));
-  }
-}
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.experdot.pointer');

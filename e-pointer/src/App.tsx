@@ -4,7 +4,7 @@ import zhCN from 'antd/locale/zh_CN';
 import { useMemo } from 'react';
 
 import UpdateNotification from './components/common/UpdateNotification';
-import Layout from './components/layout/Layout'
+// import Layout from './components/layout/Layout'
 import { useSettingsStore } from './stores/settingsStore';
 import { ZustandAppProvider } from './stores/ZustandAppProvider';
 
@@ -36,9 +36,10 @@ function AppContent(): React.JSX.Element {
     >
       <AntdApp>
         <UpdateNotification />
-        <ZustandAppProvider>
-          <Layout />
-        </ZustandAppProvider>
+        teststs
+        {/* <ZustandAppProvider> */}
+          {/* <Layout /> */}
+        {/* </ZustandAppProvider> */}
       </AntdApp>
     </ConfigProvider>
   );
