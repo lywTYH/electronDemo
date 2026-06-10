@@ -34,7 +34,7 @@ export function createWindow(): void {
         }),
     ...(platform.isLinux ? { icon } : {}),
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: join(__dirname, 'preload.js'),
       sandbox: false
     }
   });
@@ -65,8 +65,8 @@ export function createWindow(): void {
     return { action: 'deny' };
   });
 
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
+  if (is.dev && process.env['VITE_DEV_SERVER_URL']) {
+    mainWindow.loadURL(process.env['VITE_DEV_SERVER_URL']);
   } else {
     mainWindow.loadFile(join(__dirname, '../dist/index.html'));
   }

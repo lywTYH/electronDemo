@@ -222,12 +222,11 @@ export default function UpdateNotification() {
         )
       });
     },
-    [notification, updateStore]
+    [installUpdate, notification, updateStore]
   );
 
   // 应用启动时自动检查更新（仅执行一次）
   useEffect(() => {
-    console.log('UpdateNotification useEffect - 初始化');
     if (!hasCheckedOnStartup.current) {
       console.log('设置启动检查定时器...');
       startupTimerRef.current = setTimeout(() => {

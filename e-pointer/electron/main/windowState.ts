@@ -4,7 +4,6 @@ import path from 'path';
 import electron from 'electron';
 import { mkdirp } from 'mkdirp';
 
-
 function stripBom(content: string | Buffer) {
   // we do this because JSON.parse would convert it to a utf8 string if encoding wasn't specified
   if (Buffer.isBuffer(content)) content = content.toString('utf8');
@@ -55,6 +54,7 @@ export function windowStateKeeper(options: WindowStateOptions) {
     const contentBuffer = fs.readFileSync(fullStoreFileName);
     const content = stripBom(contentBuffer);
     state = JSON.parse(content);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (err) {
     // Don't care
   }
@@ -133,6 +133,7 @@ export function windowStateKeeper(options: WindowStateOptions) {
       state.isFullScreen = win.isFullScreen();
       // 保存当前所在屏幕
       state.displayBounds = screen.getDisplayMatching(winBounds).bounds;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       // Don't care
     }
@@ -146,6 +147,7 @@ export function windowStateKeeper(options: WindowStateOptions) {
       mkdirp.sync(path.dirname(fullStoreFileName));
       const str = JSON.stringify(state);
       return fs.writeFileSync(fullStoreFileName, str);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       // Don't care
     }

@@ -1,6 +1,6 @@
-import React, { useEffect,useState } from 'react';
+// import { Button, Drawer,Layout as AntLayout, Tooltip } from 'antd';
+// import React, { useEffect,useState } from 'react';
 
-import { Button, Drawer,Layout as AntLayout, Tooltip } from 'antd';
 
 // import { useSearchStore } from '../../stores/searchStore';
 // import { useUIStore } from '../../stores/uiStore';
@@ -11,10 +11,9 @@ import { Button, Drawer,Layout as AntLayout, Tooltip } from 'antd';
 // import TabsArea from './tabs/TabsArea';
 // import TitleBar from './titlebar/TitleBar';
 
-const { Sider, Content } = AntLayout;
 
 // 定义窄屏幕的阈值
-const NARROW_SCREEN_THRESHOLD = 768;
+// const NARROW_SCREEN_THRESHOLD = 768;
 
 export default function Layout() {
 
@@ -164,5 +163,5 @@ layouy
   //     {/* 全局模态框 */}
   //     <GlobalSearch visible={searchOpen} onClose={handleCloseSearch} />
     // </div>
-  );
+  // );
 }

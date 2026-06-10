@@ -42,7 +42,9 @@ export interface UpdateActions {
   setIsStartupCheck: (isStartup: boolean) => void;
   // setCurrentVersion: (version: string) => void
   setAutoCheckEnabled: (enabled: boolean) => void;
+
   // 通知状态管理
+  setDownloading: (downloading: boolean) => void;
   setDownloadNotificationKey: (key: string | null) => void;
   setDownloadNotificationHidden: (hidden: boolean) => void;
   // 复合操作
@@ -72,7 +74,7 @@ const initialState: UpdateState = {
 };
 
 export const useUpdateStore = create<UpdateState & UpdateActions>()(
-  immer((set, get) => ({
+  immer((set) => ({
     ...initialState,
     setIsStartupCheck: (isStartup) =>
       set((state) => {
@@ -84,6 +86,14 @@ export const useUpdateStore = create<UpdateState & UpdateActions>()(
     //   set((state) => {
     //     state.currentVersion = version
     //   }),
+
+    setDownloading: (downloading) =>
+      set((state) => {
+        state.downloading = downloading;
+        if (!downloading) {
+          state.downloadProgress = null;
+        }
+      }),
 
     setAutoCheckEnabled: (enabled) =>
       set((state) => {

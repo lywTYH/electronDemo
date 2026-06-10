@@ -1,9 +1,9 @@
 import js from "@eslint/js";
 import globals from "globals";
-import tseslint from "typescript-eslint";
+import { configs as tsConfigs } from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
-import reactRefresh from "eslint-plugin-react-refresh";
-import importPlugin from "eslint-plugin-import-x";
+import  reactRefresh  from "eslint-plugin-react-refresh";
+import { flatConfigs } from "eslint-plugin-import-x";
 import prettier from "eslint-config-prettier/flat";
 
 export default [
@@ -12,11 +12,11 @@ export default [
   // 官方预设
   js.configs.recommended,
   // 显式限定 TS 规则只作用于 TS 文件
-  ...tseslint.configs.recommended.map(c => ({ ...c, files: ["**/*.{ts,tsx}"] })),
+  ...tsConfigs.recommended.map(c => ({ ...c, files: ["**/*.{ts,tsx}"] })),
   // import 插件推荐规则（分析 / 正确性）
-  importPlugin.flatConfigs.recommended,
+  flatConfigs.recommended,
   // import 插件 TypeScript 适配
-  importPlugin.flatConfigs.typescript,
+  flatConfigs.typescript,
   {
     // 作用于 ts/tsx 文件
     files: ["**/*.{ts,tsx}"],

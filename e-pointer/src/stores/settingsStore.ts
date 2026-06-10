@@ -9,14 +9,14 @@ import { createPersistConfig } from './persistence/storeConfig';
 export interface SettingsState {
   settings: Settings;
 }
-export interface SettingsActions {}
+// export interface SettingsActions {}
 
 const initialState: SettingsState = {
   settings: INITIAL_SETTINGS
 };
-export const useSettingsStore = create<SettingsState & SettingsActions>()(
+export const useSettingsStore = create<SettingsState >()(
   persist(
-    immer((set, get) => ({
+    immer(() => ({
       ...initialState
     })),
     createPersistConfig<SettingsState>('setting-store', 1, (state) => ({

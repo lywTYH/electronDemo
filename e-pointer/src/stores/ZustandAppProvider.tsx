@@ -21,6 +21,7 @@ interface ZustandAppContextValue {
 
 const ZustandAppContext = createContext<ZustandAppContextValue | undefined>(undefined);
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const waitStoreHydrated = (store: any, storeName: string, delay = 10) => {
   return new Promise<void>((resolve) => {
     const check = () => {

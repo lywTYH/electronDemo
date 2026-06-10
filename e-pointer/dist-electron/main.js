@@ -14949,7 +14949,7 @@ function createWindow() {
 		},
 		...platform$1.isLinux ? { icon: icon_default } : {},
 		webPreferences: {
-			preload: (0, path.join)(__dirname, "../preload/index.js"),
+			preload: (0, path.join)(__dirname, "preload.js"),
 			sandbox: false
 		}
 	});
@@ -14973,7 +14973,7 @@ function createWindow() {
 		electron.shell.openExternal(details.url);
 		return { action: "deny" };
 	});
-	if (is.dev && process.env["ELECTRON_RENDERER_URL"]) mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
+	if (is.dev && process.env["VITE_DEV_SERVER_URL"]) mainWindow.loadURL(process.env["VITE_DEV_SERVER_URL"]);
 	else mainWindow.loadFile((0, path.join)(__dirname, "../dist/index.html"));
 }
 //#endregion

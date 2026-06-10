@@ -1,0 +1,39 @@
+directories:
+  output: release/${version}
+  buildResources: build
+$schema: https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json
+appId: com.epointer.app
+asar: true
+productName: e-pointer
+compression: maximum
+files:
+  - filter:
+      - dist
+      - dist-electron
+publish:
+  provider: github
+  owner: your-github-username
+  repo: e-pointer
+mac:
+  target:
+    - dmg
+    - zip
+  artifactName: ${productName}-Mac-${version}-Installer.${ext}
+  category: public.app-category.utilities
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: ${productName}-Windows-${version}-Setup.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+linux:
+  target:
+    - AppImage
+  artifactName: ${productName}-Linux-${version}.${ext}
+  category: Utility
+electronVersion: 42.3.3
