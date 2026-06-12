@@ -15,5 +15,18 @@ global {
         quitAndInstall: () => Promise<void>;
       };
     };
+    electronWindow: {
+      minimize: () => void;
+      maximize: () => void;
+      close: () => void;
+      isMaximized: () => Promise<boolean>;
+      getEnvInfo: () => Promise<{
+        isDev: boolean;
+        isMac: boolean;
+        isWin: boolean;
+        isLinux: boolean;
+        platform: string;
+      }>;
+    };
   }
 }

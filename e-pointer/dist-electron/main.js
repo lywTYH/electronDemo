@@ -14569,7 +14569,7 @@ function setupAutoUpdater() {
 }
 //#endregion
 //#region electron/main/ipcHandlers.ts
-async function checkForUpdates() {
+async function handleCheckForUpdates() {
 	try {
 		console.log("Checking for updates...");
 		if (is.dev && !import_main.autoUpdater.forceDevUpdateConfig) {
@@ -14584,7 +14584,7 @@ async function checkForUpdates() {
 		throw error;
 	}
 }
-async function downloadUpdate() {
+async function handleDownloadUpdate() {
 	try {
 		console.log("IPC: 开始下载更新");
 		const result = await import_main.autoUpdater.downloadUpdate();
@@ -14595,12 +14595,43 @@ async function downloadUpdate() {
 		throw error;
 	}
 }
+async function handleWindowControl(action, event) {
+	const window = electron.BrowserWindow.fromWebContents(event.sender);
+	if (!window) return;
+	switch (action) {
+		case "close":
+			window.close();
+			break;
+		case "minimize":
+			window.minimize();
+			break;
+		case "maximize":
+			if (window.isMaximized()) window.unmaximize();
+			else window.maximize();
+			break;
+		case "isMaximize": return window.isMaximized();
+	}
+}
 function registerIpcHandlers() {
-	electron.ipcMain.handle("check-for-updates", checkForUpdates);
-	electron.ipcMain.handle("download-update", downloadUpdate);
+	electron.ipcMain.handle("check-for-updates", handleCheckForUpdates);
+	electron.ipcMain.handle("download-update", handleDownloadUpdate);
 	electron.ipcMain.handle("quit-and-install", () => {
 		console.log("IPC: 退出并安装更新");
 		import_main.autoUpdater.quitAndInstall();
+	});
+	electron.ipcMain.on("ping", () => console.log("pong"));
+	electron.ipcMain.handle("window-minimize", (e) => handleWindowControl("minimize", e));
+	electron.ipcMain.handle("window-maximize", (e) => handleWindowControl("maximize", e));
+	electron.ipcMain.handle("window-close", (e) => handleWindowControl("close", e));
+	electron.ipcMain.handle("window-is-maximized", (e) => handleWindowControl("isMaximize", e));
+	electron.ipcMain.handle("get-env-info", () => {
+		return {
+			isDev: is.dev,
+			isMac: platform$1.isMacOS,
+			isWin: platform$1.isWindows,
+			isLinux: platform$1.isWindows,
+			platform: process.platform
+		};
 	});
 }
 //#endregion

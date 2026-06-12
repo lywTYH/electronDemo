@@ -29,4 +29,14 @@ const api = {
   }
 };
 
+// 窗口控制方法
+const windowAPI = {
+  minimize: () => ipcRenderer.invoke('window-minimize'),
+  maximize: () => ipcRenderer.invoke('window-maximize'),
+  close: () => ipcRenderer.invoke('window-close'),
+  isMaximized: () => ipcRenderer.invoke('window-is-maximized'),
+  getEnvInfo: () => ipcRenderer.invoke('get-env-info')
+}
+
 contextBridge.exposeInMainWorld('api', api);
+contextBridge.exposeInMainWorld('electronWindow', windowAPI)

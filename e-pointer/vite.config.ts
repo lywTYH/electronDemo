@@ -9,7 +9,14 @@ import electron from 'vite-plugin-electron/simple'
 export default defineConfig({
   plugins: [
     tailwindcss(),
-    react(),
+    react({
+      // Use Babel to run `babel-plugin-react-compiler` during transform
+      babel: {
+        plugins: [
+          require.resolve('babel-plugin-react-compiler')
+        ]
+      }
+    }),
     electron({
       main: {
         // Shortcut of `build.lib.entry`.

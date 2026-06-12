@@ -2,6 +2,7 @@ import js from "@eslint/js";
 import globals from "globals";
 import { configs as tsConfigs } from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
+// eslint-disable-next-line import-x/no-named-as-default
 import  reactRefresh  from "eslint-plugin-react-refresh";
 import { flatConfigs } from "eslint-plugin-import-x";
 import prettier from "eslint-config-prettier/flat";

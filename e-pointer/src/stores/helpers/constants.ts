@@ -1,5 +1,8 @@
 import { Settings } from '../../types/types';
 
+export const SIDEBAR_MIN_WIDTH = 200
+export const SIDEBAR_MAX_WIDTH = 600
+
 export const INITIAL_SETTINGS: Settings = {
   // llmConfigs: [],
   // defaultLLMId: undefined,

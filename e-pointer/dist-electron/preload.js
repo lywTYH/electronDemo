@@ -1,6 +1,6 @@
 let electron = require("electron");
 //#region electron/preload/preload.ts
-electron.contextBridge.exposeInMainWorld("api", { updater: {
+var api = { updater: {
 	checkForUpdates: () => electron.ipcRenderer.invoke("check-for-updates"),
 	downloadUpdate: () => electron.ipcRenderer.invoke("download-update"),
 	onUpdateAvailable: (callback) => {
@@ -25,5 +25,14 @@ electron.contextBridge.exposeInMainWorld("api", { updater: {
 		electron.ipcRenderer.removeAllListeners("update-downloaded");
 		electron.ipcRenderer.removeAllListeners("update-error");
 	}
-} });
+} };
+var windowAPI = {
+	minimize: () => electron.ipcRenderer.invoke("window-minimize"),
+	maximize: () => electron.ipcRenderer.invoke("window-maximize"),
+	close: () => electron.ipcRenderer.invoke("window-close"),
+	isMaximized: () => electron.ipcRenderer.invoke("window-is-maximized"),
+	getEnvInfo: () => electron.ipcRenderer.invoke("get-env-info")
+};
+electron.contextBridge.exposeInMainWorld("api", api);
+electron.contextBridge.exposeInMainWorld("electronWindow", windowAPI);
 //#endregion

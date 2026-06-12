@@ -1,6 +1,4 @@
-import { StorageValue } from "zustand/middleware";
-
-
+import { StorageValue } from 'zustand/middleware';
 
 export const createPersistConfig = <T>(
   storeName: string,
@@ -11,8 +9,13 @@ export const createPersistConfig = <T>(
   storage: {
     getItem: async (): Promise<StorageValue<Partial<T>> | null> => null,
     setItem: async (): Promise<void> => {},
-    removeItem: async (): Promise<void> => {},
+    removeItem: async (): Promise<void> => {}
   },
   version,
-  partialize,
+  partialize
 });
+
+// 通用的错误处理
+export const handleStoreError = (storeName: string, action: string, error: unknown) => {
+  console.error(`Error in ${storeName} store - ${action}:`, error);
+};

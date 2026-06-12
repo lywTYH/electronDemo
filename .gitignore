@@ -8,5 +8,6 @@ dist
 *.cache
 *.tmp
 *.bak
-/electron-deepseek
 /pointer
+.codegraph
+.claude
