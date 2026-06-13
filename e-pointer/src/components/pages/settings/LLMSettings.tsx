@@ -85,11 +85,12 @@ function LLMConfigForm({ open, config, onSave, onCancel }: LLMConfigFormProps) {
         message.warning('请先输入 API Host 和 API Key');
         return;
       }
-      //     const result = await window.api.ai.getModels({
-      //       apiHost,
-      //       apiKey,
-      //       modelName: ''
-      //     });
+      // const result = await window.api.ai.getModels({
+      //   apiHost,
+      //   apiKey,
+      //   modelName: ''
+      // });
+      // console.log(result);
       //     if (result.success && result.models) {
       //       setModels(result.models);
       //       message.success(`成功获取 ${result.models.length} 个模型`);
@@ -100,8 +101,9 @@ function LLMConfigForm({ open, config, onSave, onCancel }: LLMConfigFormProps) {
       return Promise.resolve(1);
     },
     onSuccess: (data) => {
-      setModels(data.models);
-      message.success(`成功获取 ${data.models.length} 个模型`);
+      console.log(data);
+      // setModels(data.models);
+      // message.success(`成功获取 ${data.models.length} 个模型`);
     },
     onError: (err) => {
       message.error(`获取模型列表失败: ${err.message}`);

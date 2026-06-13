@@ -20,6 +20,7 @@ global {
       maximize: () => void;
       close: () => void;
       isMaximized: () => Promise<boolean>;
+      ping: () => Promise<void>;
       getEnvInfo: () => Promise<{
         isDev: boolean;
         isMac: boolean;

@@ -4,14 +4,13 @@
 // import ModelConfigSettings from './ModelConfigSettings';
 // import PromptListSettings from './PromptListSettings';
 // import DataManagement from './DataManagement';
-// import SettingsDemo from './SettingsDemo';
 // import UpdateSettings from './UpdateSettings';
 
 import { Form, Tabs } from 'antd';
 
 import AppearanceSettings from './AppearanceSettings';
 import LLMSettings from './LLMSettings';
-
+import SettingsDemo from './SettingsDemo';
 import { useSettingsStore } from '../../../stores/settingsStore';
 
 interface SettingsProps {
@@ -39,7 +38,7 @@ export default function Settings({ open, defaultActiveTab = 'appearance' }: Sett
     //   key: 'model-config',
     //   label: '模型配置',
     //   children: <ModelConfigSettings />
-    // },
+    // }
     // {
     //   key: 'prompt-lists',
     //   label: '提示词列表',
@@ -55,11 +54,11 @@ export default function Settings({ open, defaultActiveTab = 'appearance' }: Sett
     //   label: '应用更新',
     //   children: <UpdateSettings />
     // },
-    // {
-    //   key: 'debug',
-    //   label: '持久化状态',
-    //   children: <SettingsDemo />
-    // }
+    {
+      key: 'debug',
+      label: '持久化状态',
+      children: <SettingsDemo />
+    }
   ];
 
   if (!open) return null;

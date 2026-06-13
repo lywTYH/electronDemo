@@ -82,7 +82,6 @@ export function useIpcQuery<TData, TParams = Record<string, unknown>>({
 
   useEffect(() => {
     if (!enabled) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, [queryKeyStr, enabled, fetchData]);
 

@@ -1,10 +1,8 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 import { app, BrowserWindow, globalShortcut } from 'electron';
 
-import { setupAutoUpdater } from './autoUpdater';
-import { registerIpcHandlers } from './ipcHandlers';
+import { registerHandlers } from './handlers';
 import { createWindow } from './window';
-
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.experdot.pointer');
@@ -13,12 +11,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  // Setup auto updater
-  setupAutoUpdater();
-  // register AI handlers
-  // registerAIHandlers();
-  // register IPC handlers
-  registerIpcHandlers();
+  registerHandlers();
 
   // Setup attachment handlers
   // setupAttachmentHandlers()

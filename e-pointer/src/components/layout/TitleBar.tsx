@@ -59,7 +59,7 @@ const TitleBar = ({ title }: TitleBarProps) => {
 
   const controlBtnClass = classnames(
     '[-webkit-app-region:no-drag] w-12 h-10 flex items-center justify-center',
-    'rounded-none text-xs transition-all duration-200',
+    'rounded-none text-xs transition-all duration-200'
   );
 
   return (

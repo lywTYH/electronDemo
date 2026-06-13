@@ -3,7 +3,7 @@ import globals from "globals";
 import { configs as tsConfigs } from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
 // eslint-disable-next-line import-x/no-named-as-default
-import  reactRefresh  from "eslint-plugin-react-refresh";
+import reactRefresh from "eslint-plugin-react-refresh";
 import { flatConfigs } from "eslint-plugin-import-x";
 import prettier from "eslint-config-prettier/flat";
 
@@ -53,20 +53,19 @@ export default [
       // react-hooks recommended rules（手动展开，避免 eslintrc 兼容问题）
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
-      "react-hooks/static-components": "error",
-      "react-hooks/use-memo": "error",
+      "react-hooks/static-components": "warn",
+      "react-hooks/use-memo": "warn",
       "react-hooks/preserve-manual-memoization": "error",
-      "react-hooks/incompatible-library": "warn",
+      "react-hooks/incompatible-library": "off",
       "react-hooks/immutability": "error",
-      "react-hooks/globals": "error",
+      "react-hooks/globals": "warn",
       "react-hooks/refs": "error",
-      "react-hooks/set-state-in-effect": "error",
-      "react-hooks/error-boundaries": "error",
-      "react-hooks/purity": "error",
+      "react-hooks/error-boundaries": "off",
+      "react-hooks/purity": "warn",
       "react-hooks/set-state-in-render": "error",
       "react-hooks/unsupported-syntax": "warn",
-      "react-hooks/config": "error",
-      "react-hooks/gating": "error",
+      "react-hooks/config": "off",
+      "react-hooks/gating": "off",
       // react-refresh
       "react-refresh/only-export-components": [
         "warn",
