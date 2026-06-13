@@ -2,6 +2,7 @@ import { ipcMain } from 'electron';
 import { createParser } from 'eventsource-parser';
 
 import { AI_EVENT } from '../constant';
+import { normalizeUrl, toErrorMessage } from '../uitls';
 
 export interface LLMConfig {
   apiHost: string;
@@ -14,6 +15,7 @@ export interface ModelConfig {
   topP: number;
   temperature: number;
 }
+
 export interface FileAttachment {
   id: string;
   name: string;
@@ -39,7 +41,6 @@ export interface AIRequest {
 }
 
 export interface AIStreamChunk {
-  requestId: string;
   type: 'chunk' | 'complete' | 'error' | 'reasoning_content';
   content?: string;
   reasoning_content?: string;
@@ -54,20 +55,54 @@ const defaultModelConfig: ModelConfig = {
   temperature: 1
 };
 
+class StreamContext {
+  readonly event: Electron.IpcMainInvokeEvent;
+  readonly eventChannel: string;
+  response = '';
+  reasoning = '';
+  completed = false;
+
+  constructor(event: Electron.IpcMainInvokeEvent, eventChannel: string) {
+    this.event = event;
+    this.eventChannel = eventChannel;
+  }
+
+  sendChunk(content: string) {
+    this.response += content;
+    this.event.sender.send(this.eventChannel, { type: 'chunk', content } as AIStreamChunk);
+  }
+
+  sendReasoning(content: string) {
+    this.reasoning += content;
+    this.event.sender.send(this.eventChannel, {
+      type: 'reasoning_content',
+      reasoning_content: content
+    } as AIStreamChunk);
+  }
+
+  sendComplete() {
+    this.event.sender.send(this.eventChannel, {
+      type: 'complete',
+      content: this.response,
+      reasoning_content: this.reasoning || undefined
+    } as AIStreamChunk);
+  }
+
+  sendError(error: string) {
+    this.event.sender.send(this.eventChannel, { type: 'error', error } as AIStreamChunk);
+  }
+}
+
 class AIHandler {
   private abortControllers = new Map<string, AbortController>();
 
-  public async sendMessageStreaming(
-    event: Electron.IpcMainInvokeEvent,
-    request: AIRequest,
-    eventChannel: string
-  ): Promise<void> {
+  async sendMessageStreaming(ctx: StreamContext, request: AIRequest): Promise<void> {
     const abortController = new AbortController();
     this.abortControllers.set(request.requestId, abortController);
 
     try {
       const modelConfig = request.modelConfig || defaultModelConfig;
-      const apiMessages = await this.prepareApiMessages(request.messages, modelConfig);
+      const apiMessages = this.prepareApiMessages(request.messages, modelConfig);
 
       const response = await this.fetchStreamingResponse(
         request,
@@ -77,53 +112,30 @@ class AIHandler {
       );
 
       if (!response.ok) {
-        this.sendError(event, eventChannel, `HTTP error! status: ${response.status}`);
+        ctx.sendError(`HTTP error! status: ${response.status}`);
         return;
       }
 
       const reader = response.body?.getReader();
       if (!reader) {
-        this.sendError(event, eventChannel, 'No response body reader available');
+        ctx.sendError('No response body reader available');
         return;
       }
 
-      const fullResponse = { value: '' };
-      const fullReasoning = { value: '' };
-      const completedRef = { value: false };
-
-      const parser = this.createStreamParser(
-        event,
-        eventChannel,
-        fullResponse,
-        fullReasoning,
-        completedRef
-      );
-
-      await this.processStreamResponse(
-        reader,
-        parser,
-        event,
-        eventChannel,
-        fullResponse,
-        fullReasoning,
-        completedRef
-      );
+      const parser = this.createStreamParser(ctx);
+      await this.processStreamResponse(reader, parser, ctx);
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
-        this.sendComplete(event, eventChannel, '', undefined);
+        ctx.sendComplete();
       } else {
-        this.sendError(
-          event,
-          eventChannel,
-          error instanceof Error ? error.message : 'Unknown error'
-        );
+        ctx.sendError(toErrorMessage(error));
       }
     } finally {
       this.abortControllers.delete(request.requestId);
     }
   }
 
-  public async stopStreaming(requestId: string): Promise<void> {
+  stopStreaming(requestId: string): void {
     const abortController = this.abortControllers.get(requestId);
     if (abortController) {
       abortController.abort();
@@ -131,9 +143,9 @@ class AIHandler {
     }
   }
 
-  public async testConnection(config: LLMConfig): Promise<{ success: boolean; error?: string }> {
+  async testConnection(config: LLMConfig): Promise<{ success: boolean; error?: string }> {
     try {
-      const response = await fetch(`${config.apiHost.replace(/\/$/, '')}/chat/completions`, {
+      const response = await fetch(normalizeUrl(config.apiHost, '/chat/completions'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -146,81 +158,61 @@ class AIHandler {
         })
       });
 
-      if (response.ok) {
-        return { success: true };
-      } else {
-        const errorText = await response.text();
-        return {
-          success: false,
-          error: `HTTP ${response.status}: ${errorText || response.statusText}`
-        };
-      }
+      return response.ok
+        ? { success: true }
+        : {
+            success: false,
+            error: `HTTP ${response.status}: ${(await response.text()) || response.statusText}`
+          };
     } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Connection failed'
-      };
+      return { success: false, error: toErrorMessage(error, 'Connection failed') };
     }
   }
 
-  public async getModels(config: LLMConfig) {
+  async getModels(
+    config: LLMConfig
+  ): Promise<{ success: boolean; models?: string[]; error?: string }> {
     try {
-      const response = await fetch(`${config.apiHost.replace(/\/$/, '')}/models`, {
+      const response = await fetch(normalizeUrl(config.apiHost, '/models'), {
         method: 'GET',
-        headers: {
-          Authorization: `Bearer ${config.apiKey}`
-        }
+        headers: { Authorization: `Bearer ${config.apiKey}` }
       });
-      if (response.ok) {
-        const data = await response.json();
-        const models = data.data?.map((model: ModelConfig) => model.id) || [];
-        return { success: true, models };
-      } else {
-        return {
-          success: false,
-          error: `HTTP ${response.status}: ${response.statusText}`
-        };
+
+      if (!response.ok) {
+        return { success: false, error: `HTTP ${response.status}: ${response.statusText}` };
       }
+
+      const data = await response.json();
+      const models: string[] = data.data?.map((m: { id: string }) => m.id) || [];
+      return { success: true, models };
     } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch models'
-      };
+      return { success: false, error: toErrorMessage(error, 'Failed to fetch models') };
     }
   }
 
-  private async prepareApiMessages(
-    messages: ChatMessage[],
-    modelConfig: ModelConfig
-  ): Promise<ChatMessage[]> {
+  private prepareApiMessages(messages: ChatMessage[], modelConfig: ModelConfig): ChatMessage[] {
     const apiMessages = messages.map((msg) => ({
       role: msg.role,
       content: msg.content
     }));
-    // 如果有systemPrompt且第一条消息不是system消息，则插入system消息
+
     if (
       modelConfig.systemPrompt &&
       (apiMessages.length === 0 || apiMessages[0].role !== 'system')
     ) {
-      apiMessages.unshift({
-        role: 'system',
-        content: modelConfig.systemPrompt
-      });
+      apiMessages.unshift({ role: 'system', content: modelConfig.systemPrompt });
     }
 
     return apiMessages;
   }
 
-  /**
-   * 创建并发送 API 请求
-   */
-  private async fetchStreamingResponse(
+  private fetchStreamingResponse(
     request: AIRequest,
     apiMessages: ChatMessage[],
     modelConfig: ModelConfig,
     abortController: AbortController
-  ) {
-    return await fetch(`${request.llmConfig.apiHost.replace(/\/$/, '')}/chat/completions`, {
+  ): Promise<Response> {
+    return fetch(normalizeUrl(request.llmConfig.apiHost, '/chat/completions'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -237,21 +229,12 @@ class AIHandler {
     });
   }
 
-  /**
-   * 创建 SSE 事件解析器
-   */
-  private createStreamParser(
-    event: Electron.IpcMainInvokeEvent,
-    eventChannel: string,
-    fullResponse: { value: string },
-    fullReasoning: { value: string },
-    completedRef: { value: boolean }
-  ) {
+  private createStreamParser(ctx: StreamContext) {
     return createParser({
       onEvent: (eventData) => {
         if (eventData.data === '[DONE]') {
-          completedRef.value = true;
-          this.sendComplete(event, eventChannel, fullResponse.value, fullReasoning.value);
+          ctx.completed = true;
+          ctx.sendComplete();
           return;
         }
 
@@ -259,45 +242,25 @@ class AIHandler {
           const parsed = JSON.parse(eventData.data);
           const delta = parsed.choices?.[0]?.delta;
           const content = delta?.content;
-          const reasoning_content =
+          const reasoningContent =
             delta?.reasoning_content ||
             delta?.reasoning ||
             parsed.reasoning_content ||
             parsed.reasoning;
 
-          if (content) {
-            fullResponse.value += content;
-            event.sender.send(eventChannel, {
-              type: 'chunk',
-              content
-            } as AIStreamChunk);
-          }
-
-          if (reasoning_content) {
-            fullReasoning.value += reasoning_content;
-            event.sender.send(eventChannel, {
-              type: 'reasoning_content',
-              reasoning_content
-            } as AIStreamChunk);
-          }
-        } catch (e) {
-          console.warn('Failed to parse streaming data:', e);
+          if (content) ctx.sendChunk(content);
+          if (reasoningContent) ctx.sendReasoning(reasoningContent);
+        } catch {
+          console.warn('Failed to parse streaming data');
         }
       }
     });
   }
 
-  /**
-   * 处理流式响应
-   */
   private async processStreamResponse(
     reader: ReadableStreamDefaultReader<Uint8Array>,
     parser: ReturnType<typeof createParser>,
-    event: Electron.IpcMainInvokeEvent,
-    eventChannel: string,
-    fullResponse: { value: string },
-    fullReasoning: { value: string },
-    completedRef: { value: boolean }
+    ctx: StreamContext
   ): Promise<void> {
     try {
       while (true) {
@@ -305,48 +268,15 @@ class AIHandler {
         if (done) break;
         parser.feed(decoder.decode(value, { stream: true }));
       }
-      if (!completedRef.value) {
-        this.sendComplete(event, eventChannel, fullResponse.value, fullReasoning.value);
-      }
+
+      if (!ctx.completed) ctx.sendComplete();
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
-        if (!completedRef.value) {
-          this.sendComplete(event, eventChannel, fullResponse.value, fullReasoning.value);
-        }
+        if (!ctx.completed) ctx.sendComplete();
       } else {
-        this.sendError(
-          event,
-          eventChannel,
-          error instanceof Error ? error.message : 'Unknown error'
-        );
+        ctx.sendError(toErrorMessage(error));
       }
     }
-  }
-
-  /**
-   * 发送错误消息给渲染进程
-   */
-  private sendError(event: Electron.IpcMainInvokeEvent, eventChannel: string, error: string): void {
-    event.sender.send(eventChannel, {
-      type: 'error',
-      error
-    } as AIStreamChunk);
-  }
-
-  /**
-   * 发送完成消息给渲染进程
-   */
-  private sendComplete(
-    event: Electron.IpcMainInvokeEvent,
-    eventChannel: string,
-    content: string,
-    reasoning_content?: string
-  ): void {
-    event.sender.send(eventChannel, {
-      type: 'complete',
-      content,
-      reasoning_content: reasoning_content || undefined
-    } as AIStreamChunk);
   }
 }
 
@@ -354,7 +284,7 @@ const aiHandler = new AIHandler();
 
 export const registerAIHandlers = () => {
   ipcMain.handle(AI_EVENT.AI_SEND_STREAM, (event, request: AIRequest, eventChannel: string) =>
-    aiHandler.sendMessageStreaming(event, request, eventChannel)
+    aiHandler.sendMessageStreaming(new StreamContext(event, eventChannel), request)
   );
   ipcMain.handle(AI_EVENT.AI_STOP_STREAM, (_event, requestId: string) =>
     aiHandler.stopStreaming(requestId)

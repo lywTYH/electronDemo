@@ -11,11 +11,12 @@ interface AIStreamCallbacks {
 }
 
 const api = {
-  sendMessageStreaming: (request: AIRequest, callbacks: AIStreamCallbacks): Promise<string> => {
-    return new Promise((resolve, reject) => {
+  sendMessageStreaming: (request: AIRequest, callbacks: AIStreamCallbacks) => {
+    const eventChannel = `ai-stream-${request.requestId}`;
+
+    const promise = new Promise<string>((resolve, reject) => {
       let fullResponse = '';
       let fullReasoning = '';
-      const eventChannel = `ai-stream-${request.requestId}`;
 
       const cleanup = () => ipcRenderer.removeListener(eventChannel, handleStreamData);
 
@@ -47,7 +48,6 @@ const api = {
           }
         }
       };
-
       ipcRenderer.on(eventChannel, handleStreamData);
       ipcRenderer.invoke(AI_EVENT.AI_SEND_STREAM, request, eventChannel).catch((error) => {
         cleanup();
@@ -55,6 +55,11 @@ const api = {
         reject(error);
       });
     });
+
+    return {
+      promise,
+      cancel: () => api.stopStreaming(request.requestId)
+    };
   },
   testConnection: (config: LLMConfig) => ipcRenderer.invoke(AI_EVENT.AI_TEST_CONNECTION, config),
   getModels: (config: LLMConfig) => ipcRenderer.invoke(AI_EVENT.AI_GET_MODELS, config),
