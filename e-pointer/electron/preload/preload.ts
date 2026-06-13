@@ -1,62 +1,64 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-import { APP_EVENT, UPDATER_EVENT, WINDOW_EVENT } from '../main/constant';
-import { LLMConfig } from '../main/handlers/aiHandlers';
+import { APP_EVENT, UPDATER_EVENT, WINDOW_EVENT, AI_EVENT } from '../main/constant';
+import { AIRequest, AIStreamChunk, LLMConfig } from '../main/handlers/aiHandlers';
+
+interface AIStreamCallbacks {
+  onChunk: (chunk: string) => void;
+  onReasoning?: (reasoning: string) => void;
+  onComplete?: (fullResponse: string, reasoning?: string) => void;
+  onError?: (error: string) => void;
+}
 
 const api = {
-  //   sendMessageStreaming: (request: AIRequest, callbacks: AIStreamCallbacks): Promise<string> => {
-  //   return new Promise((resolve, reject) => {
-  //     let fullResponse = ''
-  //     let fullReasoning = ''
+  sendMessageStreaming: (request: AIRequest, callbacks: AIStreamCallbacks): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      let fullResponse = '';
+      let fullReasoning = '';
+      const eventChannel = `ai-stream-${request.requestId}`;
 
-  //     // 创建一个唯一的事件通道
-  //     const eventChannel = `ai-stream-${request.requestId}`
+      const cleanup = () => ipcRenderer.removeListener(eventChannel, handleStreamData);
 
-  //     // 监听流数据
-  //     const handleStreamData = (_: any, data: AIStreamChunk) => {
-  //       switch (data.type) {
-  //         case 'chunk':
-  //           if (data.content) {
-  //             fullResponse += data.content
-  //             callbacks.onChunk(data.content)
-  //           }
-  //           break
-  //         case 'reasoning_content':
-  //           if (data.reasoning_content) {
-  //             fullReasoning += data.reasoning_content
-  //             callbacks.onReasoning?.(data.reasoning_content)
-  //           }
-  //           break
-  //         case 'complete':
-  //           ipcRenderer.removeListener(eventChannel, handleStreamData)
-  //           const finalReasoning = data.reasoning_content || fullReasoning || undefined
-  //           callbacks.onComplete?.(fullResponse || data.content || '', finalReasoning)
-  //           resolve(request.requestId)
-  //           break
-  //         case 'error':
-  //           ipcRenderer.removeListener(eventChannel, handleStreamData)
-  //           callbacks.onError?.(data.error || 'Unknown error')
-  //           reject(new Error(data.error || 'Unknown error'))
-  //           break
-  //       }
-  //     }
+      const handleStreamData = (_: Electron.IpcRendererEvent, data: AIStreamChunk) => {
+        switch (data.type) {
+          case 'chunk':
+            if (data.content) {
+              fullResponse += data.content;
+              callbacks.onChunk(data.content);
+            }
+            break;
+          case 'reasoning_content':
+            if (data.reasoning_content) {
+              fullReasoning += data.reasoning_content;
+              callbacks.onReasoning?.(data.reasoning_content);
+            }
+            break;
+          case 'complete':
+            cleanup();
+            callbacks.onComplete?.(fullResponse, fullReasoning || undefined);
+            resolve(request.requestId);
+            break;
+          case 'error': {
+            cleanup();
+            const errMsg = data.error || 'Unknown error';
+            callbacks.onError?.(errMsg);
+            reject(new Error(errMsg));
+            break;
+          }
+        }
+      };
 
-  //     ipcRenderer.on(eventChannel, handleStreamData)
-
-  //     // 发送请求，传递事件通道名称
-  //     ipcRenderer.invoke('ai:send-message-streaming', request, eventChannel).catch((error) => {
-  //       ipcRenderer.removeListener(eventChannel, handleStreamData)
-  //       callbacks.onError?.(error.message)
-  //       reject(error)
-  //     })
-  //   })
-  // },
-  testConnection: (config: LLMConfig) => ipcRenderer.invoke('ai:test-connection', config),
-  //   getModels: (config: LLMConfig): Promise<GetModelsResult> =>
-  //     ipcRenderer.invoke('ai:get-models', config),
-  //   stopStreaming: (requestId: string): Promise<void> =>
-  //     ipcRenderer.invoke('ai:stop-streaming', requestId)
-  // },
+      ipcRenderer.on(eventChannel, handleStreamData);
+      ipcRenderer.invoke(AI_EVENT.AI_SEND_STREAM, request, eventChannel).catch((error) => {
+        cleanup();
+        callbacks.onError?.(error.message);
+        reject(error);
+      });
+    });
+  },
+  testConnection: (config: LLMConfig) => ipcRenderer.invoke(AI_EVENT.AI_TEST_CONNECTION, config),
+  getModels: (config: LLMConfig) => ipcRenderer.invoke(AI_EVENT.AI_GET_MODELS, config),
+  stopStreaming: (requestId: string) => ipcRenderer.invoke(AI_EVENT.AI_STOP_STREAM, requestId),
   // // 文件操作API
   // saveFile: (options: {
   //   content: string | Uint8Array
