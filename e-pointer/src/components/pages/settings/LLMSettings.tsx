@@ -1,34 +1,3 @@
-// import React, { useState, useEffect } from 'react'
-// import {
-//   Card,
-//   List,
-//   Button,
-//   Modal,
-//   Form,
-//   Input,
-//   Space,
-//   Typography,
-//   Tag,
-//   Empty,
-//   Dropdown,
-//   Select,
-//   App,
-//   Divider
-// } from 'antd'
-// import {
-//   PlusOutlined,
-//   EditOutlined,
-//   DeleteOutlined,
-//   CopyOutlined,
-//   StarOutlined,
-//   StarFilled,
-//   MoreOutlined,
-//   ThunderboltOutlined
-// } from '@ant-design/icons'
-// import { LLMConfig } from '../../types/type'
-// import { createAIService } from '../../services/aiService'
-// import { useSettingsStore } from '../../stores/settingsStore'
-
 import {
   CopyOutlined,
   DeleteOutlined,
@@ -60,7 +29,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { useSettingsStore } from '../../../stores/settingsStore';
 import { LLMConfig } from '../../../types/types';
-import { useIpcMutation } from '../../../utils/hooks';
+import { useMutation } from '../../../utils/hooks';
 
 const { Text } = Typography;
 
@@ -77,7 +46,7 @@ function LLMConfigForm({ open, config, onSave, onCancel }: LLMConfigFormProps) {
   const [models, setModels] = useState<string[]>([]);
   const { message } = App.useApp();
   const { settings } = useSettingsStore();
-  const { mutate: fetchModels, isPending: modelLoading } = useIpcMutation({
+  const { mutate: fetchModels, isPending: modelLoading } = useMutation({
     mutationFn: async () => {
       const apiHost = form.getFieldValue('apiHost');
       const apiKey = form.getFieldValue('apiKey');
@@ -85,19 +54,19 @@ function LLMConfigForm({ open, config, onSave, onCancel }: LLMConfigFormProps) {
         message.warning('请先输入 API Host 和 API Key');
         return;
       }
-      // const result = await window.api.ai.getModels({
-      //   apiHost,
-      //   apiKey,
-      //   modelName: ''
-      // });
-      // console.log(result);
-      //     if (result.success && result.models) {
-      //       setModels(result.models);
-      //       message.success(`成功获取 ${result.models.length} 个模型`);
-      //     } else {
-      //       message.error(result.error || '获取模型列表失败');
-      //       setModels([]);
-      //     }
+      const result = await window.api.ai.getModels({
+        apiHost,
+        apiKey,
+        modelName: ''
+      });
+      console.log(result);
+      if (result.success && result.models) {
+        setModels(result.models);
+        message.success(`成功获取 ${result.models.length} 个模型`);
+      } else {
+        message.error(result.error || '获取模型列表失败');
+        setModels([]);
+      }
       return Promise.resolve(1);
     },
     onSuccess: (data) => {
@@ -149,28 +118,26 @@ function LLMConfigForm({ open, config, onSave, onCancel }: LLMConfigFormProps) {
     }
   };
 
-  // const testConnection = async () => {
-  //   try {
-  //     const values = await form.validateFields();
-  //     setLoading(true);
-
-  //     const result = await window.api.ai.testConnection({
-  //       apiHost: values.apiHost,
-  //       apiKey: values.apiKey,
-  //       modelName: values.modelName
-  //     });
-
-  //     if (result.success) {
-  //       message.success('连接测试成功');
-  //     } else {
-  //       message.error(result.error || '连接测试失败，请检查配置');
-  //     }
-  //   } catch (error) {
-  //     message.error(`连接测试失败，请检查配置: ${(error as Error).message}`);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  const testConnection = async () => {
+    try {
+      const values = await form.validateFields();
+      setLoading(true);
+      const result = await window.api.ai.testConnection({
+        apiHost: values.apiHost,
+        apiKey: values.apiKey,
+        modelName: values.modelName
+      });
+      if (result.success) {
+        message.success('连接测试成功');
+      } else {
+        message.error(result.error || '连接测试失败，请检查配置');
+      }
+    } catch (error) {
+      message.error(`连接测试失败，请检查配置: ${(error as Error).message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Modal
@@ -185,7 +152,7 @@ function LLMConfigForm({ open, config, onSave, onCancel }: LLMConfigFormProps) {
         <Button
           key="test"
           icon={<ThunderboltOutlined />}
-          // onClick={testConnection}
+          onClick={testConnection}
           loading={loading}
         >
           测试连接

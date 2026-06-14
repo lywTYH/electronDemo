@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-import { APP_EVENT, UPDATER_EVENT, WINDOW_EVENT, AI_EVENT } from '../main/constant';
+import { listenIPCStream } from './ipcStream';
+import { APP_EVENT, UPDATER_EVENT, WINDOW_EVENT, AI_EVENT, FILE_EVENT } from '../main/constant';
 import { AIRequest, AIStreamChunk, LLMConfig } from '../main/handlers/aiHandlers';
 
 interface AIStreamCallbacks {
@@ -11,72 +12,62 @@ interface AIStreamCallbacks {
 }
 
 const api = {
-  sendMessageStreaming: (request: AIRequest, callbacks: AIStreamCallbacks) => {
-    const eventChannel = `ai-stream-${request.requestId}`;
-
-    const promise = new Promise<string>((resolve, reject) => {
-      let fullResponse = '';
-      let fullReasoning = '';
-
-      const cleanup = () => ipcRenderer.removeListener(eventChannel, handleStreamData);
-
-      const handleStreamData = (_: Electron.IpcRendererEvent, data: AIStreamChunk) => {
-        switch (data.type) {
-          case 'chunk':
-            if (data.content) {
+  ai: {
+    sendMessageStreaming: (request: AIRequest, callbacks: AIStreamCallbacks) => {
+      const eventChannel = `ai-stream-${request.requestId}`;
+      const promise = new Promise<string>((resolve, reject) => {
+        let fullResponse = '';
+        let fullReasoning = '';
+        const cleanup = listenIPCStream<AIStreamChunk>(
+          eventChannel,
+          (data) => {
+            if (data.type === 'chunk' && data.content) {
               fullResponse += data.content;
               callbacks.onChunk(data.content);
             }
-            break;
-          case 'reasoning_content':
-            if (data.reasoning_content) {
+            if (data.type === 'reasoning_content' && data.reasoning_content) {
               fullReasoning += data.reasoning_content;
               callbacks.onReasoning?.(data.reasoning_content);
             }
-            break;
-          case 'complete':
-            cleanup();
-            callbacks.onComplete?.(fullResponse, fullReasoning || undefined);
-            resolve(request.requestId);
-            break;
-          case 'error': {
-            cleanup();
-            const errMsg = data.error || 'Unknown error';
-            callbacks.onError?.(errMsg);
-            reject(new Error(errMsg));
-            break;
+          },
+          (err) => {
+            if (err) {
+              callbacks.onError?.(err.message);
+              reject(err);
+            } else {
+              callbacks.onComplete?.(fullResponse, fullReasoning || undefined);
+              resolve(request.requestId);
+            }
           }
-        }
-      };
-      ipcRenderer.on(eventChannel, handleStreamData);
-      ipcRenderer.invoke(AI_EVENT.AI_SEND_STREAM, request, eventChannel).catch((error) => {
-        cleanup();
-        callbacks.onError?.(error.message);
-        reject(error);
+        );
+        ipcRenderer.invoke(AI_EVENT.SEND_STREAM, request, eventChannel).catch((error) => {
+          cleanup();
+          callbacks.onError?.(error.message);
+          reject(error);
+        });
       });
-    });
 
-    return {
-      promise,
-      cancel: () => api.stopStreaming(request.requestId)
-    };
+      return {
+        promise,
+        cancel: () => api.ai.stopStreaming(request.requestId)
+      };
+    },
+    testConnection: (config: LLMConfig) => ipcRenderer.invoke(AI_EVENT.TEST_CONNECTION, config),
+    getModels: (config: LLMConfig) => ipcRenderer.invoke(AI_EVENT.GET_MODELS, config),
+    stopStreaming: (requestId: string) => ipcRenderer.invoke(AI_EVENT.STOP_STREAM, requestId),
+    // 文件操作API
+    saveFile: (options: {
+      content: string | Uint8Array;
+      defaultPath: string;
+      filters?: Array<{ name: string; extensions: string[] }>;
+    }) => ipcRenderer.invoke(FILE_EVENT.SAVE, options),
+    readFile: (filePath: string) => ipcRenderer.invoke(FILE_EVENT.READ, filePath),
+    selectFiles: (options?: {
+      multiple?: boolean;
+      filters?: Array<{ name: string; extensions: string[] }>;
+    }) => ipcRenderer.invoke(FILE_EVENT.SELECT, options)
   },
-  testConnection: (config: LLMConfig) => ipcRenderer.invoke(AI_EVENT.AI_TEST_CONNECTION, config),
-  getModels: (config: LLMConfig) => ipcRenderer.invoke(AI_EVENT.AI_GET_MODELS, config),
-  stopStreaming: (requestId: string) => ipcRenderer.invoke(AI_EVENT.AI_STOP_STREAM, requestId),
-  // // 文件操作API
-  // saveFile: (options: {
-  //   content: string | Uint8Array
-  //   defaultPath: string
-  //   filters?: Array<{ name: string; extensions: string[] }>
-  // }) => ipcRenderer.invoke('save-file', options),
 
-  // readFile: (filePath: string) => ipcRenderer.invoke('read-file', filePath),
-
-  // selectFiles: (options?: {
-  //   multiple?: boolean
-  //   filters?: Array<{ name: string; extensions: string[] }>
-  // }) => ipcRenderer.invoke('select-files', options),
   updater: {
     checkForUpdates: () => ipcRenderer.invoke(UPDATER_EVENT.CHECK),
     downloadUpdate: () => ipcRenderer.invoke(UPDATER_EVENT.DOWNLOAD),

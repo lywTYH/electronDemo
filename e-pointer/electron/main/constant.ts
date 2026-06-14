@@ -23,8 +23,14 @@ export enum UPDATER_EVENT {
 }
 
 export enum AI_EVENT {
-  AI_SEND_STREAM = 'ai:send-message-streaming',
-  AI_STOP_STREAM = 'ai:stop-streaming',
-  AI_TEST_CONNECTION = 'ai:test-connection',
-  AI_GET_MODELS = 'ai:get-models'
+  SEND_STREAM = 'ai:send-message-streaming',
+  STOP_STREAM = 'ai:stop-streaming',
+  TEST_CONNECTION = 'ai:test-connection',
+  GET_MODELS = 'ai:get-models'
+}
+
+export enum FILE_EVENT {
+  SAVE = 'save-file',
+  SELECT = 'select-file',
+  READ = 'read-file'
 }

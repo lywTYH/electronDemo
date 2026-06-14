@@ -283,16 +283,14 @@ class AIHandler {
 const aiHandler = new AIHandler();
 
 export const registerAIHandlers = () => {
-  ipcMain.handle(AI_EVENT.AI_SEND_STREAM, (event, request: AIRequest, eventChannel: string) =>
+  ipcMain.handle(AI_EVENT.SEND_STREAM, (event, request: AIRequest, eventChannel: string) =>
     aiHandler.sendMessageStreaming(new StreamContext(event, eventChannel), request)
   );
-  ipcMain.handle(AI_EVENT.AI_STOP_STREAM, (_event, requestId: string) =>
+  ipcMain.handle(AI_EVENT.STOP_STREAM, (_event, requestId: string) =>
     aiHandler.stopStreaming(requestId)
   );
-  ipcMain.handle(AI_EVENT.AI_TEST_CONNECTION, (_event, config: LLMConfig) =>
+  ipcMain.handle(AI_EVENT.TEST_CONNECTION, (_event, config: LLMConfig) =>
     aiHandler.testConnection(config)
   );
-  ipcMain.handle(AI_EVENT.AI_GET_MODELS, (_event, config: LLMConfig) =>
-    aiHandler.getModels(config)
-  );
+  ipcMain.handle(AI_EVENT.GET_MODELS, (_event, config: LLMConfig) => aiHandler.getModels(config));
 };

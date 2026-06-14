@@ -1,7 +1,6 @@
 // import React from 'react';
 // import { Form, Tabs } from 'antd';
 // import AppearanceSettings from './AppearanceSettings';
-// import ModelConfigSettings from './ModelConfigSettings';
 // import PromptListSettings from './PromptListSettings';
 // import DataManagement from './DataManagement';
 // import UpdateSettings from './UpdateSettings';
@@ -10,6 +9,7 @@ import { Form, Tabs } from 'antd';
 
 import AppearanceSettings from './AppearanceSettings';
 import LLMSettings from './LLMSettings';
+import ModelConfigSettings from './ModelConfigSettings';
 import SettingsDemo from './SettingsDemo';
 import { useSettingsStore } from '../../../stores/settingsStore';
 
@@ -34,11 +34,11 @@ export default function Settings({ open, defaultActiveTab = 'appearance' }: Sett
       label: 'LLM配置',
       children: <LLMSettings />
     },
-    // {
-    //   key: 'model-config',
-    //   label: '模型配置',
-    //   children: <ModelConfigSettings />
-    // }
+    {
+      key: 'model-config',
+      label: '模型配置',
+      children: <ModelConfigSettings />
+    },
     // {
     //   key: 'prompt-lists',
     //   label: '提示词列表',

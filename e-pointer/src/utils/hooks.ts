@@ -13,13 +13,10 @@ export const useNarrowScreen = () => {
   return isNarrowScreen;
 };
 
-// ---- useIpcQuery ----
-
-type IpcQueryFn<TData, TParams> = (params: TParams) => Promise<TData>;
-
-interface UseIpcQueryOptions<TData, TParams> {
+type QueryFn<TData, TParams> = (params: TParams) => Promise<TData>;
+interface UseQueryOptions<TData, TParams> {
   queryKey: string | string[];
-  queryFn: IpcQueryFn<TData, TParams>;
+  queryFn: QueryFn<TData, TParams>;
   params?: TParams;
   enabled?: boolean;
   onSuccess?: (data: TData) => void;
@@ -29,7 +26,7 @@ interface UseIpcQueryOptions<TData, TParams> {
 
 const EMPTY_PARAMS = {};
 
-export function useIpcQuery<TData, TParams = Record<string, unknown>>({
+export function useQuery<TData, TParams = Record<string, unknown>>({
   queryKey,
   queryFn,
   params = EMPTY_PARAMS as TParams,
@@ -37,7 +34,7 @@ export function useIpcQuery<TData, TParams = Record<string, unknown>>({
   onSuccess,
   onError,
   onSettled
-}: UseIpcQueryOptions<TData, TParams>) {
+}: UseQueryOptions<TData, TParams>) {
   const [data, setData] = useState<TData | undefined>();
   const [isLoading, setIsLoading] = useState(enabled);
   const [isFetching, setIsFetching] = useState(false);
@@ -90,23 +87,21 @@ export function useIpcQuery<TData, TParams = Record<string, unknown>>({
   return { data, isLoading, isFetching, isError, error, refetch };
 }
 
-// ---- useIpcMutation ----
+type MutationFn<TPayload, TResult> = (payload: TPayload) => Promise<TResult>;
 
-type IpcMutationFn<TPayload, TResult> = (payload: TPayload) => Promise<TResult>;
-
-interface UseIpcMutationOptions<TPayload, TResult> {
-  mutationFn: IpcMutationFn<TPayload, TResult>;
+interface UseMutationOptions<TPayload, TResult> {
+  mutationFn: MutationFn<TPayload, TResult>;
   onSuccess?: (data: TResult, payload: TPayload) => void;
   onError?: (err: Error, payload: TPayload) => void;
   onSettled?: (data: TResult | undefined, err: Error | undefined, payload: TPayload) => void;
 }
 
-export function useIpcMutation<TPayload, TResult>({
+export function useMutation<TPayload, TResult>({
   mutationFn,
   onSuccess,
   onError,
   onSettled
-}: UseIpcMutationOptions<TPayload, TResult>) {
+}: UseMutationOptions<TPayload, TResult>) {
   const [data, setData] = useState<TResult | undefined>();
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);

@@ -61,7 +61,7 @@ export default [
       "react-hooks/globals": "warn",
       "react-hooks/refs": "error",
       "react-hooks/error-boundaries": "off",
-      "react-hooks/purity": "warn",
+      "react-hooks/purity": "off",
       "react-hooks/set-state-in-render": "error",
       "react-hooks/unsupported-syntax": "warn",
       "react-hooks/config": "off",
